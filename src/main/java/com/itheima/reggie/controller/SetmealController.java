@@ -13,6 +13,8 @@ import com.itheima.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -111,6 +113,8 @@ public class SetmealController {
      */
     @Transactional
     @DeleteMapping
+    //allEntries = true, 将所有在setmealCache下的缓存都删除掉
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> delete(String[] ids) {
         int index = 0;
         for (String id : ids) {
@@ -138,6 +142,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping("/status/{status}")
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> update(String[] ids, @PathVariable int status) {
         for (String id : ids) {
             Setmeal byId = setmealService.getById(id);
@@ -159,6 +164,7 @@ public class SetmealController {
         return R.success("修改成功！");
     }
 
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId + '_' + #setmeal.status")
     @GetMapping("/list")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
